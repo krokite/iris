@@ -31,9 +31,8 @@ import (
 )
 
 const (
-
 	// Version is the current version number of the Iris Web Framework.
-	Version = "8.1.3"
+	Version = "8.2.5"
 )
 
 // HTTP status codes as registered with IANA.
@@ -304,6 +303,11 @@ var (
 	//
 	// A shortcut for the `context#LimitRequestBodySize`.
 	LimitRequestBodySize = context.LimitRequestBodySize
+	// Gzip is a middleware which enables writing
+	// using gzip compression, if client supports.
+	//
+	// A shortcut for the `context#Gzip`.
+	Gzip = context.Gzip
 	// FromStd converts native http.Handler, http.HandlerFunc & func(w, r, next) to context.Handler.
 	//
 	// Supported form types:
@@ -648,6 +652,11 @@ func (app *Application) Run(serve Runner, withOrWithout ...Configurator) error {
 
 	app.Configure(withOrWithout...)
 	app.logger.Debugf("Application:  running using %d host(s)", len(app.Hosts)+1)
+
+	if !app.config.DisableVersionChecker && app.logger.Level != golog.DisableLevel {
+		go CheckVersion()
+	}
+
 	// this will block until an error(unless supervisor's DeferFlow called from a Task).
 	err := serve(app)
 	if err != nil {

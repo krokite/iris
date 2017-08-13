@@ -1,8 +1,14 @@
-# ![Logo created by @santoshanand](logo_white_35_24.png) Iris 
+<!-- # ![Logo created by @santoshanand](logo_white_35_24.png) Iris 
+-->
+<p align="center">
+<img src="iris_the_new_machine.gif">
+</p>
 
 Iris is a fast, simple and efficient micro web framework for Go. It provides a beautifully expressive and easy to use foundation for your next website, API, or distributed app.
 
-[![total used by](http://iris-go.com/graph?style=flat-square)](http://iris-go.com/graph)
+[Star or watch](https://github.com/kataras/iris/stargazers) this repository, it is still in **active development mode**.
+
+<!-- [![total used by](http://iris-go.com/graph?style=flat-square)](http://iris-go.com/graph) -->
 [![build status](https://img.shields.io/travis/kataras/iris/master.svg?style=flat-square)](https://travis-ci.org/kataras/iris)
 [![report card](https://img.shields.io/badge/report%20card-a%2B-ff3333.svg?style=flat-square)](http://goreportcard.com/report/kataras/iris)
 [![github issues](https://img.shields.io/github/issues/kataras/iris.svg?style=flat-square)](https://github.com/kataras/iris/issues?q=is%3Aopen+is%3Aissue)
@@ -20,11 +26,11 @@ Iris is a fast, simple and efficient micro web framework for Go. It provides a b
 ### 📑 Table of contents
 
 * [Installation](#-installation)
-* [Latest changes](https://github.com/kataras/iris/blob/master/HISTORY.md#tu-01-august-2017--v813)
+* [Latest changes](https://github.com/kataras/iris/blob/master/HISTORY.md#su-13-august-2017--v825)
 * [Learn](#-learn)
 	* [HTTP Listening](_examples/#http-listening)
 	* [Configuration](_examples/#configuration)
-	* [Routing, Grouping, Dynamic Path Parameters, "Macros" and Custom Context](_examples/#routing-grouping-dynamic-path-parameters-macros-and-custom-context)
+	* [Routing, Grouping, Controllers, Dynamic Path Parameters, "Macros" and Custom Context](_examples/#routing-grouping-dynamic-path-parameters-macros-and-custom-context)
 	* [Subdomains](_examples/#subdomains)
 	* [Wrap `http.Handler/HandlerFunc`](_examples/#convert-httphandlerhandlerfunc)
 	* [View](_examples/#view)
@@ -45,38 +51,12 @@ Iris is a fast, simple and efficient micro web framework for Go. It provides a b
 * [Middleware](middleware/)
 * [Dockerize](https://github.com/iris-contrib/cloud-native-go)
 * [Community & Support](#-community)
+* [Blogs](http://iris-go.com/v8/blogs)
 * [Versioning](#-version)
     * [When should I upgrade?](#should-i-upgrade-my-iris)
     * [Where can I find older versions?](#where-can-i-find-older-versions)
 * [Get Hired](#-get-hired)
 * [People](#-people)
-
-<!--
-
-# Mo, 10 July 2017 | v8.0.0
-
-### 📈 One and a half years with Iris and You...
-
-- 7070 github stars
-- 749 github forks
-- 1m total views at its documentation
-- ~800$ at donations (there're a lot for a golang open-source project, thanks to you)
-- ~550 reported bugs fixed
-- ~30 community feature requests have been implemented
-
-### 🔥 Reborn
-
-As you may have heard I have huge responsibilities on my new position at Dubai nowadays, therefore I don't have the needed time to work on this project anymore.
-
-After almost a month of negotiations and searching I succeed to find a decent software engineer to continue my work on the open source community.
-
-The leadership of this, open-source, repository was transferred to [hiveminded](https://github.com/hiveminded).
-
-These types of projects need heart and sacrifices to continue offer the best developer experience like a paid software, please do support him as you did with me!
-
-> Please [contact](https://kataras.rocket.chat/channel/iris) with the project team if you want to help at the development process!
-
--->
 
 ### 🚀 Installation
 
@@ -158,17 +138,17 @@ func main() {
 }
 ```
 
-We expect Go version 1.9 to be released in August, however you can install Go 1.9 RC1 today.
+We expect Go version 1.9 to be released in August, however you can install Go 1.9 RC2 today.
 
-### Installing Go 1.9rc1
+### Installing Go 1.9rc2
  
-1. Go to https://golang.org/dl/#go1.9rc1
-2. Download a compatible, with your OS, archive or executable, i.e `go1.9rc1.windows-amd64.zip`
-3. Unzip the contents of `go1.9rc1.windows-amd64.zip` folder to your $GOROOT, i.e `C:\Go` or just execute the executable you've just download
-4. Open a terminal and execute `go version`, it should output the go1.9rc1 version, i.e:
+1. Go to https://golang.org/dl/#go1.9rc2
+2. Download a compatible, with your OS, archive or executable, i.e `go1.9rc2.windows-amd64.zip`
+3. Unzip the contents of `go1.9rc2.windows-amd64.zip` folder to your $GOROOT, i.e `C:\Go` or just execute the executable you've just download
+4. Open a terminal and execute `go version`, it should output the go1.9rc2 version, i.e:
 ```sh
 C:\Users\kataras>go version
-go version go1.9rc1 windows/amd64
+go version go1.9rc2 windows/amd64
 ```
 
 </details>
@@ -203,7 +183,7 @@ The same day, later the night, I was reading a book about Greek mythology. I saw
 
  I'm still here [because Iris has succeed in being the fastest go web framework](https://raw.githubusercontent.com/smallnest/go-web-framework-benchmark/4db507a22c964c9bc9774c5b31afdc199a0fe8b7/benchmark.png)
 
-[![](http://comments.iris-go.com/screens/comment37.png)](https://twitter.com/ThePracticalDev/status/892022594031017988)
+[![](http://comments.iris-go.com/screens/comment37.png)](https://twitter.com/ThePracticalDev/status/892022594031017988) 
 
 ![](https://docs.iris-go.com/comment36.png)
 
@@ -268,6 +248,7 @@ Compared to the rest open source projects, this one is very active and you get a
 	* Remove trailing slash from the URL with option to redirect
 	* Virtual hosts and subdomains made easy
 	* Group API's and static or even dynamic subdomains
+	* MVC [**NEW**](_examples/routing/mvc)
 	* `net/http` and `negroni-like` handlers are compatible via `iris.FromStd` 
 	* Register custom handlers for any HTTP error
 	* Transactions and rollback when you need it
@@ -312,7 +293,6 @@ The _iris_ philosophy is to provide robust tooling for HTTP, making it a great s
 _iris_ does not force you to use any specific ORM. With support for the most popular template engines, websocket server and a fast sessions manager you can quickly craft your perfect application.
 
 
-
 The awesome _iris_ community is always adding new examples, [_examples](_examples/) is a great place to get started!
 
 Read the [godocs](https://godoc.org/github.com/kataras/iris) for a better understanding.
@@ -335,18 +315,18 @@ $ go get -u github.com/iris-contrib/middleware/...
 
 #### 📈 One and a half years with You...
 
-- 7070 github stars
-- 749 github forks
+- 7210 github stars
+- 766 github forks
 - 1m total views at its documentation
 - ~800$ at donations (there're a lot for a golang open-source project, thanks to you)
-- ~550 reported bugs fixed
+- ~554 reported bugs fixed
 - ~30 community feature requests have been implemented
 
 Thank You for your trust!
 
 ### 📌 Version
 
-Current: **8.1.3**
+Current: [VERSION](VERSION)
 
 Each new release is pushed to the master. It stays there until the next version. When a next version is released then the previous version goes to its own branch with `gopkg.in` as its import path (and its own vendor folder), in order to keep it working "for-ever".
 
@@ -370,7 +350,7 @@ Below you'll find a list of open positions that require at least **experience wi
 | -----------|--------|-------------|
 | Kudo, an Indonesian startup technology company | Application Programming Interface Developer | Navigate to: https://glints.id/opportunities/jobs/5553 |
 
-Employers that are looking for briliant Software Engineers with good experience on Go Programming Language and Iris can put their startup's or company's name here or, if privacy is the key, [contact with us](mailto:kataras2006@hotmail.com?subject=Employer%20That%20Hires%20Smart%20Devs) to suggest some good and well-tested freelancers that suits your needs.
+Employers that are looking for brilliant Software Engineers with good experience on Go Programming Language and Iris can put their startup's or company's name here or, if privacy is the key, [contact with us](mailto:kataras2006@hotmail.com?subject=Employer%20That%20Hires%20Smart%20Devs) to suggest some good and well-tested freelancers that suits your needs.
 
 ### 🥇 People
 

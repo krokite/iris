@@ -18,6 +18,202 @@ Developers are not forced to upgrade if they don't really need it. Upgrade whene
 
 **How to upgrade**: Open your command-line and execute this command: `go get -u github.com/kataras/iris`.
 
+# Su, 13 August 2017 | v8.2.5
+
+Good news for devs that are used to write their web apps using the `MVC-style` app architecture.
+
+Yesterday I wrote a [tutorial](tutorial/mvc-from-scratch) on how you can transform your raw `Handlers` to `Controllers` using the existing tools only ([Iris is the most modular web framework out there](https://medium.com/@corebreaker/iris-web-cd684b4685c7), we all have no doubt about this).
+
+Today, I did implement the `Controller` idea as **built'n feature inside Iris**.
+Our `Controller` supports many things among them are:
+
+- all HTTP Methods are supported, for example if want to serve `GET` then the controller should have a function named `Get()`, you can define more than one method function to serve in the same Controller struct
+- `persistence` data inside your Controller struct (share data between requests) via **`iris:"persistence"`** tag right to the field
+- optional `Init` function to perform any initialization before the methods, useful to call middlewares or when many methods use the same collection of data
+- access to the request path parameters via the `Params` field
+- access to the template file that should be rendered via the `Tmpl` field
+- access to the template data that should be rendered inside the template file via `Data` field
+- access to the template layout via the `Layout` field
+- access to the low-level `context.Context` via the `Ctx` field
+- flow as you used to, `Controllers` can be registered to any `Party`, including Subdomains, the Party's begin and done handlers work as expected. 
+
+It's very easy to get started, the only function you need to call instead of `app.Get/Post/Put/Delete/Connect/Head/Patch/Options/Trace` is the `app.Controller`.
+
+Example Code:
+
+```go
+// file: main.go
+
+package main
+
+import (
+    "github.com/kataras/iris"
+
+    "controllers"
+)
+
+func main() {
+    app := iris.New()
+    app.RegisterView(iris.HTML("./views", ".html"))
+
+    app.Controller("/", new(controllers.Index))
+
+    // http://localhost:8080/
+    app.Run(iris.Addr(":8080"))
+}
+
+```
+
+```go
+// file: controllers/index.go
+
+package controllers
+
+import (
+    "github.com/kataras/iris/core/router"
+)
+
+// Index is our index example controller.
+type Index struct {
+    router.Controller
+    // if you're using go1.9: 
+    // you can omit the /core/router import statement
+    // and just use the `iris.Controller` instead.
+}
+
+// will handle GET method on http://localhost:8080/
+func (c *Index) Get() {
+    c.Tmpl = "index.html"
+    c.Data["title"] = "Index page"
+    c.Data["message"] = "Hello world!"
+}
+
+// will handle POST method on http://localhost:8080/
+func (c *Index) Post() {}
+
+```
+
+> Tip: declare a func(c *Index) All() {} or Any() to register all HTTP Methods.
+
+A full example can be found at the [_examples/routing/mvc](_examples/routing/mvc) folder.
+
+
+# Sa, 12 August 2017 | v8.2.4
+
+No API Changes.
+
+Fix https://github.com/kataras/iris/issues/717, users are welcomed to follow the thread for any questions or reports about Gzip and Static Files Handlers **only**.
+
+# Th, 10 August 2017 | v8.2.3
+
+No API Changes.
+
+Fix https://github.com/kataras/iris/issues/714
+
+Continue to v8.2.2 for more...
+
+# Th, 10 August 2017 | v8.2.2
+
+No API Changes.
+
+- Implement [Google reCAPTCHA](middleware/recaptcha) middleware, example [here](_examples/miscellaneous/recaptcha/main.go)
+- Fix [kataras/golog](https://github.com/kataras/golog) prints with colors on windows server 2012 while it shouldn't because its command line tool does not support 256bit colors
+- Improve the updater by a custom self-updated back-end version checker, can be disabled by:
+
+```go
+app.Run(iris.Addr(":8080"), iris.WithoutVersionChecker)
+```
+Or
+```go
+app.Configure(iris.WithoutVersionChecker)
+```
+Or 
+```go
+app.Configure(iris.WithConfiguration(iris.Configuration{DisableVersionChecker:true}))
+```
+
+# Tu, 08 August 2017 | v8.2.1
+
+No API Changes. Great news for the unique iris sessions library, once again.
+
+**NEW**: [LevelDB-based](https://github.com/google/leveldb) session database implemented, example [here](_examples/sessions/database/leveldb/main.go).
+
+[Redis-based sessiondb](sessions/sessiondb/redis) has no longer the `MaxAgeSeconds` config field,
+this is passed automatically by the session manager, now.
+
+All [sessions databases](sessions/sessiondb) have an `Async(bool)` function, if turned on
+then all synchronization between the memory store and the back-end database will happen
+inside different go routines. By-default async is false but it's recommended to turn it on, it will make sessions to be stored faster, at most.
+
+All reported issues have been fixed, the API is simplified by `v8.2.0` so everyone can
+create and use any back-end storage for application's sessions persistence.
+
+# Mo, 07 August 2017 | v8.2.0
+
+No Common-API Changes.
+
+Good news for [iris sessions back-end databases](_examples/sessions) users.
+
+<details>
+<summary>Info for session database authors</summary>
+Session Database API Changed to:
+
+```go
+type Database interface {
+	Load(sid string) RemoteStore
+	Sync(p SyncPayload)
+}
+
+// SyncPayload reports the state of the session inside a database sync action.
+type SyncPayload struct {
+	SessionID string
+
+	Action Action
+	// on insert it contains the new key and the value
+	// on update it contains the existing key and the new value
+	// on delete it contains the key (the value is nil)
+	// on clear it contains nothing (empty key, value is nil)
+	// on destroy it contains nothing (empty key, value is nil)
+	Value memstore.Entry
+	// Store contains the whole memory store, this store
+	// contains the current, updated from memory calls,
+	// session data (keys and values). This way
+	// the database has access to the whole session's data
+	// every time.
+	Store RemoteStore
+}
+
+
+// RemoteStore is a helper which is a wrapper
+// for the store, it can be used as the session "table" which will be
+// saved to the session database.
+type RemoteStore struct {
+	// Values contains the whole memory store, this store
+	// contains the current, updated from memory calls,
+	// session data (keys and values). This way
+	// the database has access to the whole session's data
+	// every time.
+	Values memstore.Store
+	// on insert it contains the expiration datetime
+	// on update it contains the new expiration datetime(if updated or the old one)
+	// on delete it will be zero
+	// on clear it will be zero
+	// on destroy it will be zero
+	Lifetime LifeTime
+}
+```
+
+Read more at [sessions/database.go](sessions/database.go), view how three built'n session databases are being implemented [here](sessions/sessiondb).
+</details> 
+
+All sessions databases are updated and they performant even faster than before.
+
+- **NEW** raw file-based session database implemented, example [here](_examples/sessions/database/file)
+- **NEW** [boltdb-based](https://github.com/boltdb/bolt) session database implemented, example [here](_examples/sessions/database/boltdb) (recommended as it's safer and faster)
+- [redis sessiondb](_examples/sessions/database/redis) updated to the latest api
+
+Under the cover, session database works entirely differently than before but nothing changed from the user's perspective, so upgrade with `go get -u github.com/kataras/iris` and sleep well.
+
 # Tu, 01 August 2017 | v8.1.3
 
 - Add `Option` function to the `html view engine`: https://github.com/kataras/iris/issues/694

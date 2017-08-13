@@ -80,6 +80,15 @@ func TestRouterWildcardAndStatic(t *testing.T) {
 		{"GET", "/some/static", h, []testRouteRequest{
 			{"GET", "", "/some/static", iris.StatusOK, same_as_request_path},
 		}},
+
+		{"GET", "/s/{p:path}", h2, []testRouteRequest{
+			{"GET", "", "/s/that/is/wildcard", iris.StatusForbidden, same_as_request_path},
+			{"GET", "", "/s/did", iris.StatusForbidden, same_as_request_path},
+			{"GET", "", "/s1/that/is/wildcard", iris.StatusNotFound, from_status_code},
+		}},
+		{"GET", "/s/static", h, []testRouteRequest{
+			{"GET", "", "/s/static", iris.StatusOK, same_as_request_path},
+		}},
 	}
 
 	testTheRoutes(t, tt, false)
@@ -117,13 +126,16 @@ func TestRouterWildcardRootManyAndRootStatic(t *testing.T) {
 		// this feature is very important and can remove noumerous of previous hacks on our apps.
 		{"GET", "/{p:path}", h, []testRouteRequest{
 			{"GET", "", "/other2almost/some", iris.StatusOK, same_as_request_path},
-			// it's a request to /other , not other/something, therefore the root wildcard is the handler
-			{"GET", "", "/other", iris.StatusOK, same_as_request_path},
+		}},
+		{"GET", "/static/{p:path}", h, []testRouteRequest{
+			{"GET", "", "/static", iris.StatusOK, same_as_request_path},
+			{"GET", "", "/static/something/here", iris.StatusOK, same_as_request_path},
 		}},
 		{"GET", "/", h, []testRouteRequest{
 			{"GET", "", "/", iris.StatusOK, same_as_request_path},
 		}},
 		{"GET", "/other/{paramother:path}", h2, []testRouteRequest{
+			{"GET", "", "/other", iris.StatusForbidden, same_as_request_path},
 			{"GET", "", "/other/wildcard", iris.StatusForbidden, same_as_request_path},
 			{"GET", "", "/other/wildcard/here", iris.StatusForbidden, same_as_request_path},
 		}},

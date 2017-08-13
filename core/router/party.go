@@ -100,6 +100,62 @@ type Party interface {
 	// (Get,Post,Put,Head,Patch,Options,Connect,Delete).
 	Any(registeredPath string, handlers ...context.Handler) []*Route
 
+	// Controller registers a `Controller` instance and returns the registered Routes.
+	// The "controller" receiver should embed a field of `Controller` in order
+	// to be compatible Iris `Controller`.
+	//
+	// It's just an alternative way of building an API for a specific
+	// path, the controller can register all type of http methods.
+	//
+	// Keep note that this method is a bit slow
+	// because of the reflection use however it's as fast as possible because
+	// it does preparation before the serve-time handler but still
+	// remains slower than the low-level handlers
+	// such as `Handle, Get, Post, Put, Delete, Connect, Head, Trace, Patch` .
+	//
+	// An Example Controller can be:
+	//
+	// type IndexController struct {
+	// 	Controller
+	// }
+	//
+	// func (c *IndexController) Get() {
+	// 	c.Tmpl = "index.html"
+	// 	c.Data["title"] = "Index page"
+	// 	c.Data["message"] = "Hello world!"
+	// }
+	//
+	// Usage: app.Controller("/", new(IndexController))
+	//
+	//
+	// Another example with persistence data:
+	//
+	// type UserController struct {
+	// 	Controller
+	//
+	// 	CreatedAt time.Time `iris:"persistence"`
+	// 	Title     string    `iris:"persistence"`
+	// 	DB        *DB		`iris:"persistence"`
+	// }
+	//
+	// // Get serves using the User controller when HTTP Method is "GET".
+	// func (c *UserController) Get() {
+	// 	c.Tmpl = "user/index.html"
+	// 	c.Data["title"] = c.Title
+	// 	c.Data["username"] = "kataras " + c.Params.Get("userid")
+	// 	c.Data["connstring"] = c.DB.Connstring
+	// 	c.Data["uptime"] = time.Now().Sub(c.CreatedAt).Seconds()
+	// }
+	//
+	// Usage: app.Controller("/user/{id:int}", &UserController{
+	// 	CreatedAt: time.Now(),
+	// 	Title: "User page",
+	// 	DB: yourDB,
+	// })
+	//
+	// Read more at `router#Controller`.
+	Controller(relativePath string, controller interface{}) []*Route
+
 	// StaticHandler returns a new Handler which is ready
 	// to serve all kind of static files.
 	//
@@ -117,7 +173,7 @@ type Party interface {
 	// mySubdomainFsServer.Get("/static", h)
 	// ...
 	//
-	StaticHandler(systemPath string, showList bool, enableGzip bool) context.Handler
+	StaticHandler(systemPath string, showList bool, gzip bool) context.Handler
 
 	// StaticServe serves a directory as web resource
 	// it's the simpliest form of the Static* functions
@@ -172,7 +228,7 @@ type Party interface {
 	// ending in "/index.html" to the same path, without the final
 	// "index.html".
 	//
-	// StaticWeb calls the StaticHandler(systemPath, listingDirectories: false, gzip: false ).
+	// StaticWeb calls the `StripPrefix(fullpath, NewStaticHandlerBuilder(systemPath).Listing(false).Build())`.
 	//
 	// Returns the GET *Route.
 	StaticWeb(requestPath string, systemPath string) *Route

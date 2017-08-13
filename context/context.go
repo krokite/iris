@@ -282,7 +282,18 @@ type Context interface {
 	GetHeader(name string) string
 	// IsAjax returns true if this request is an 'ajax request'( XMLHttpRequest)
 	//
-	// Read more at: http://www.w3schools.com/ajax/
+	// There is no a 100% way of knowing that a request was made via Ajax.
+	// You should never trust data coming from the client, they can be easily overcome by spoofing.
+	//
+	// Note that "X-Requested-With" Header can be modified by any client(because of "X-"),
+	// so don't rely on IsAjax for really serious stuff,
+	// try to find another way of detecting the type(i.e, content type),
+	// there are many blogs that describe these problems and provide different kind of solutions,
+	// it's always depending on the application you're building,
+	// this is the reason why this `IsAjax`` is simple enough for general purpose use.
+	//
+	// Read more at: https://developer.mozilla.org/en-US/docs/AJAX
+	// and https://xhr.spec.whatwg.org/
 	IsAjax() bool
 
 	//  +------------------------------------------------------------+
@@ -617,13 +628,13 @@ type Context interface {
 	// BUT it isn't available by browsing, its handlers executed only when other handler's context call them
 	// it can validate paths, has sessions, path parameters and all.
 	//
-	// You can find the Route by app.Routes().Lookup("theRouteName")
+	// You can find the Route by app.GetRoute("theRouteName")
 	// you can set a route name as: myRoute := app.Get("/mypath", handler)("theRouteName")
 	// that will set a name to the route and returns its RouteInfo instance for further usage.
 	//
 	// It doesn't changes the global state, if a route was "offline" it remains offline.
 	//
-	// app.None(...) and app.Routes().Offline(route)/.Online(route, method)
+	// app.None(...) and app.GetRoutes().Offline(route)/.Online(route, method)
 	//
 	// Example: https://github.com/kataras/iris/tree/master/_examples/routing/route-state
 	//
@@ -747,6 +758,19 @@ func Next(ctx Context) {
 	}
 }
 
+// Do calls the SetHandlers(handlers)
+// and executes the first handler,
+// handlers should not be empty.
+//
+// It's used by the router, developers may use that
+// to replace and execute handlers immediately.
+func Do(ctx Context, handlers Handlers) {
+	if len(handlers) > 0 {
+		ctx.SetHandlers(handlers)
+		handlers[0](ctx)
+	}
+}
+
 // LimitRequestBodySize is a middleware which sets a request body size limit
 // for all next handlers in the chain.
 var LimitRequestBodySize = func(maxRequestBodySizeBytes int64) Handler {
@@ -754,6 +778,13 @@ var LimitRequestBodySize = func(maxRequestBodySizeBytes int64) Handler {
 		ctx.SetMaxRequestBodySize(maxRequestBodySizeBytes)
 		ctx.Next()
 	}
+}
+
+// Gzip is a middleware which enables writing
+// using gzip compression, if client supports.
+var Gzip = func(ctx Context) {
+	ctx.Gzip(true)
+	ctx.Next()
 }
 
 // Map is just a shortcut of the map[string]interface{}.
@@ -1132,10 +1163,20 @@ func (ctx *context) GetHeader(name string) string {
 
 // IsAjax returns true if this request is an 'ajax request'( XMLHttpRequest)
 //
-// Read more at: http://www.w3schools.com/ajax/
+// There is no a 100% way of knowing that a request was made via Ajax.
+// You should never trust data coming from the client, they can be easily overcome by spoofing.
+//
+// Note that "X-Requested-With" Header can be modified by any client(because of "X-"),
+// so don't rely on IsAjax for really serious stuff,
+// try to find another way of detecting the type(i.e, content type),
+// there are many blogs that describe these problems and provide different kind of solutions,
+// it's always depending on the application you're building,
+// this is the reason why this `IsAjax`` is simple enough for general purpose use.
+//
+// Read more at: https://developer.mozilla.org/en-US/docs/AJAX
+// and https://xhr.spec.whatwg.org/
 func (ctx *context) IsAjax() bool {
-	return ctx.GetHeader("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
-
+	return ctx.GetHeader("X-Requested-With") == "XMLHttpRequest"
 }
 
 //  +------------------------------------------------------------+
@@ -2275,13 +2316,13 @@ func (ctx *context) TransactionsSkipped() bool {
 // BUT it isn't available by browsing, its handlers executed only when other handler's context call them
 // it can validate paths, has sessions, path parameters and all.
 //
-// You can find the Route by app.Routes().Lookup("theRouteName")
+// You can find the Route by app.GetRoute("theRouteName")
 // you can set a route name as: myRoute := app.Get("/mypath", handler)("theRouteName")
 // that will set a name to the route and returns its RouteInfo instance for further usage.
 //
 // It doesn't changes the global state, if a route was "offline" it remains offline.
 //
-// app.None(...) and app.Routes().Offline(route)/.Online(route, method)
+// app.None(...) and app.GetRoutes().Offline(route)/.Online(route, method)
 //
 // Example: https://github.com/kataras/iris/tree/master/_examples/routing/route-state
 //
